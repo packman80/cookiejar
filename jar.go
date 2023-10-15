@@ -67,7 +67,7 @@ type Jar struct {
 
 	// entries is a set of entries, keyed by their eTLD+1 and subkeyed by
 	// their name/domain/path.
-	Entries map[string]map[string]entry
+	entries map[string]map[string]entry
 
 	// nextSeqNum is the next sequence number assigned to a new cookie
 	// created SetCookies.
@@ -157,6 +157,11 @@ func hasDotSuffix(s, suffix string) bool {
 // It returns an empty slice if the URL's scheme is not HTTP or HTTPS.
 func (j *Jar) Cookies(u *url.URL) (cookies []*http.Cookie) {
 	return j.cookies(u, time.Now())
+}
+
+// my custom func
+func (j *Jar) AllEntries() (entries map[string]map[string]entry) {
+	return j.entries
 }
 
 // cookies is like Cookies but takes the current time as a parameter.
