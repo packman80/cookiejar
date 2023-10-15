@@ -66,7 +66,7 @@ type Jar struct {
 
 	// entries is a set of entries, keyed by their eTLD+1 and subkeyed by
 	// their name/domain/path.
-	entries map[string]map[string]entry
+	Entries map[string]map[string]entry
 
 	// nextSeqNum is the next sequence number assigned to a new cookie
 	// created SetCookies.
