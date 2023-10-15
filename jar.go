@@ -10,12 +10,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/http/internal/ascii"
 	"net/url"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/packman80/cookiejar/internal/ascii"
 )
 
 // PublicSuffixList provides the public suffix of a domain. For example:
