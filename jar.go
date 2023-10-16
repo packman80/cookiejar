@@ -6,6 +6,7 @@
 package cookiejar
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -55,7 +56,8 @@ type Options struct {
 	// A nil value is valid and may be useful for testing but it is not
 	// secure: it means that the HTTP server for foo.co.uk can set a cookie
 	// for bar.co.uk.
-	PublicSuffixList PublicSuffixList
+	PublicSuffixList  PublicSuffixList
+	CookiesJsonString string
 }
 
 // Jar implements the http.CookieJar interface from the net/http package.
@@ -67,7 +69,7 @@ type Jar struct {
 
 	// entries is a set of entries, keyed by their eTLD+1 and subkeyed by
 	// their name/domain/path.
-	entries map[string]map[string]entry
+	entries map[string]map[string]Entry
 
 	// nextSeqNum is the next sequence number assigned to a new cookie
 	// created SetCookies.
@@ -78,10 +80,20 @@ type Jar struct {
 // Options.
 func New(o *Options) (*Jar, error) {
 	jar := &Jar{
-		entries: make(map[string]map[string]entry),
+		entries: make(map[string]map[string]Entry),
 	}
-	if o != nil {
+
+	if o.PublicSuffixList != nil {
 		jar.psList = o.PublicSuffixList
+	}
+	if o.CookiesJsonString != "" {
+		var m map[string]map[string]Entry
+		// Конвертация строки в байты (с аллокацией)
+		data := []byte(o.CookiesJsonString)
+		if err := json.Unmarshal(data, &m); err != nil {
+			return nil, err
+		}
+		jar.entries = m
 	}
 	return jar, nil
 }
@@ -90,7 +102,7 @@ func New(o *Options) (*Jar, error) {
 //
 // This struct type is not used outside of this package per se, but the exported
 // fields are those of RFC 6265.
-type entry struct {
+type Entry struct {
 	Name       string
 	Value      string
 	Domain     string
@@ -110,37 +122,22 @@ type entry struct {
 	seqNum uint64
 }
 
-type Entry struct {
-	Name       string
-	Value      string
-	Domain     string
-	Path       string
-	SameSite   string
-	Secure     bool
-	HttpOnly   bool
-	Persistent bool
-	HostOnly   bool
-	Expires    time.Time
-	Creation   time.Time
-	LastAccess time.Time
-}
-
 // id returns the domain;path;name triple of e as an id.
-func (e *entry) id() string {
+func (e *Entry) id() string {
 	return fmt.Sprintf("%s;%s;%s", e.Domain, e.Path, e.Name)
 }
 
 // shouldSend determines whether e's cookie qualifies to be included in a
 // request to host/path. It is the caller's responsibility to check if the
 // cookie is expired.
-func (e *entry) shouldSend(https bool, host, path string) bool {
+func (e *Entry) shouldSend(https bool, host, path string) bool {
 	return e.domainMatch(host) && e.pathMatch(path) && (https || !e.Secure)
 }
 
 // domainMatch checks whether e's Domain allows sending e back to host.
 // It differs from "domain-match" of RFC 6265 section 5.1.3 because we treat
 // a cookie with an IP address in the Domain always as a host cookie.
-func (e *entry) domainMatch(host string) bool {
+func (e *Entry) domainMatch(host string) bool {
 	if e.Domain == host {
 		return true
 	}
@@ -148,7 +145,7 @@ func (e *entry) domainMatch(host string) bool {
 }
 
 // pathMatch implements "path-match" according to RFC 6265 section 5.1.4.
-func (e *entry) pathMatch(requestPath string) bool {
+func (e *Entry) pathMatch(requestPath string) bool {
 	if requestPath == e.Path {
 		return true
 	}
@@ -200,7 +197,7 @@ func (j *Jar) cookies(u *url.URL, now time.Time) (cookies []*http.Cookie) {
 	}
 
 	modified := false
-	var selected []entry
+	var selected []Entry
 	for id, e := range submap {
 		if e.Persistent && !e.Expires.After(now) {
 			delete(submap, id)
@@ -286,7 +283,7 @@ func (j *Jar) setCookies(u *url.URL, cookies []*http.Cookie, now time.Time) {
 			continue
 		}
 		if submap == nil {
-			submap = make(map[string]entry)
+			submap = make(map[string]Entry)
 		}
 
 		if old, ok := submap[id]; ok {
@@ -555,11 +552,6 @@ func (j *Jar) domainAndType(host, domain string) (string, bool, error) {
 	return domain, false, nil
 }
 
-// my custom func
-func (j *Jar) GetEntries() (entries map[string]map[string]entry) {
-	return j.entries
-}
-
-func (j *Jar) SetEntries(entries map[string]map[string]entry) {
-	j.entries = entries
+func (j *Jar) MarshalEntries() ([]byte, error) {
+	return json.Marshal(j.entries)
 }
