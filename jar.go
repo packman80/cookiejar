@@ -159,15 +159,6 @@ func (j *Jar) Cookies(u *url.URL) (cookies []*http.Cookie) {
 	return j.cookies(u, time.Now())
 }
 
-// my custom func
-func (j *Jar) GetEntries() (entries map[string]map[string]entry) {
-	return j.entries
-}
-
-func (j *Jar) SetEntries(entries map[string]map[string]entry) {
-	j.entries = entries
-}
-
 // cookies is like Cookies but takes the current time as a parameter.
 func (j *Jar) cookies(u *url.URL, now time.Time) (cookies []*http.Cookie) {
 	if u.Scheme != "http" && u.Scheme != "https" {
@@ -547,4 +538,13 @@ func (j *Jar) domainAndType(host, domain string) (string, bool, error) {
 	}
 
 	return domain, false, nil
+}
+
+// my custom func
+func (j *Jar) GetEntries() (entries map[string]map[string]entry) {
+	return j.entries
+}
+
+func (j *Jar) SetEntries(entries map[string]map[string]entry) {
+	j.entries = entries
 }
