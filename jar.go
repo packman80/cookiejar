@@ -56,8 +56,8 @@ type Options struct {
 	// A nil value is valid and may be useful for testing but it is not
 	// secure: it means that the HTTP server for foo.co.uk can set a cookie
 	// for bar.co.uk.
-	PublicSuffixList  PublicSuffixList
-	CookiesJsonString string
+	PublicSuffixList PublicSuffixList
+	CookiesJson      []byte
 }
 
 // Jar implements the http.CookieJar interface from the net/http package.
@@ -89,11 +89,10 @@ func New(o *Options) (*Jar, error) {
 			jar.psList = o.PublicSuffixList
 		}
 
-		if o.CookiesJsonString != "" {
+		if len(o.CookiesJson) > 0 {
 			var m map[string]map[string]Entry
 			// Конвертация строки в байты (с аллокацией)
-			data := []byte(o.CookiesJsonString)
-			if err := json.Unmarshal(data, &m); err != nil {
+			if err := json.Unmarshal(o.CookiesJson, &m); err != nil {
 				return nil, err
 			}
 			jar.entries = m
