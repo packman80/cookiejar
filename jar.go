@@ -123,11 +123,6 @@ type Entry struct {
 	Expires    time.Time
 	Creation   time.Time
 	LastAccess time.Time
-
-	// seqNum is a sequence number so that Cookies returns cookies in a
-	// deterministic order, even for cookies that have equal Path length and
-	// equal Creation time. This simplifies testing.
-	seqNum uint64
 }
 
 // id returns the domain;path;name triple of e as an id.
