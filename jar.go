@@ -401,7 +401,7 @@ func defaultPath(path string) string {
 // be valid to call e.id (which depends on e's Name, Domain and Path).
 //
 // A malformed c.Domain will result in an error.
-func (j *Jar) newEntry(c *http.Cookie, now time.Time, defPath, host string) (e entry, remove bool, err error) {
+func (j *Jar) newEntry(c *http.Cookie, now time.Time, defPath, host string) (e Entry, remove bool, err error) {
 	e.Name = c.Name
 
 	if c.Path == "" || c.Path[0] != '/' {
