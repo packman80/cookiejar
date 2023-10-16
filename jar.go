@@ -160,8 +160,12 @@ func (j *Jar) Cookies(u *url.URL) (cookies []*http.Cookie) {
 }
 
 // my custom func
-func (j *Jar) AllEntries() (entries map[string]map[string]entry) {
+func (j *Jar) GetEntries() (entries map[string]map[string]entry) {
 	return j.entries
+}
+
+func (j *Jar) SetEntries(entries map[string]map[string]entry) {
+	j.entries = entries
 }
 
 // cookies is like Cookies but takes the current time as a parameter.
