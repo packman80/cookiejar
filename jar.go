@@ -83,17 +83,21 @@ func New(o *Options) (*Jar, error) {
 		entries: make(map[string]map[string]Entry),
 	}
 
-	if o.PublicSuffixList != nil {
-		jar.psList = o.PublicSuffixList
-	}
-	if o.CookiesJsonString != "" {
-		var m map[string]map[string]Entry
-		// Конвертация строки в байты (с аллокацией)
-		data := []byte(o.CookiesJsonString)
-		if err := json.Unmarshal(data, &m); err != nil {
-			return nil, err
+	if o != nil {
+
+		if o.PublicSuffixList != nil {
+			jar.psList = o.PublicSuffixList
 		}
-		jar.entries = m
+
+		if o.CookiesJsonString != "" {
+			var m map[string]map[string]Entry
+			// Конвертация строки в байты (с аллокацией)
+			data := []byte(o.CookiesJsonString)
+			if err := json.Unmarshal(data, &m); err != nil {
+				return nil, err
+			}
+			jar.entries = m
+		}
 	}
 	return jar, nil
 }
